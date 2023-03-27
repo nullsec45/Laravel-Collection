@@ -238,4 +238,74 @@ class CollectionTest extends TestCase
         $result2=$collection->slice(3, 2);
         $this->assertEqualsCanonicalizing([4,5], $result2->all());
     }
+
+    public function testTake(){
+        $collection=collect([1,2,3,4,5,6,7,8,9]);
+
+        $result=$collection->take(3);
+        $this->assertEqualsCanonicalizing([1,2,3], $result->all());
+
+        $result=$collection->takeUntil(function($value, $key){
+            return $value == 3;
+        });
+
+        $this->assertEqualsCanonicalizing([1,2], $result->all());
+
+        $result=$collection->takeWhile(function($value, $key){
+            return $value < 3;
+        });
+
+        $this->assertEqualsCanonicalizing([1,2], $result->all());
+
+        
+    }
+
+    public function testChunk(){
+        $collection=collect([1,2,3,4,5,6,7,8,9]);
+
+        $result=$collection->chunk(3);
+
+        $this->assertEqualsCanonicalizing([1,2,3], $result->all()[0]->all());
+        $this->assertEqualsCanonicalizing([4,5,6], $result->all()[1]->all());
+        $this->assertEqualsCanonicalizing([7,8,9], $result->all()[2]->all());
+    }
+
+    public function testFirst(){
+        $collection=collect([1,2,3,4,5,6,7,8,9,10]);
+        $result=$collection->first();
+
+        $this->assertEquals(1, $result);
+
+        $result=$collection->first(function ($value, $key){
+            return $value > 5;
+        });
+        $this->assertEquals(6, $result);
+    }
+
+    public function testLast(){
+        $collection=collect([1,2,3,4,5,6,7,8,9,10]);
+        $result=$collection->last();
+
+        $this->assertEquals(10, $result);
+
+        $result=$collection->last(function ($value, $key){
+            return $value < 5;
+        });
+        $this->assertEquals(4, $result);
+    }
+
+    public function testRandom(){
+        $collection=collect([1,2,3,4,5,6,7,8,9,10]);
+        
+        $result=$collection->random();
+        $this->assertTrue(in_array($result, [1,2,3,4,5,6,7,8,9,10]));
+    }
+
+    public function testCheckingExistance(){
+        $collection=collect([1,2,3,4,5,6,7,8,9,10]);
+        $this->assertTrue($collection->isNotEmpty());
+        $this->assertFalse($collection->isEmpty());
+        $this->assertTrue($collection->contains(9));
+        $this->assertFalse($collection->contains(11));
+    }
 }
