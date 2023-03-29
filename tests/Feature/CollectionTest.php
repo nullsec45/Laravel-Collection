@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Data\Person;
+use Illuminate\Support\LazyCollection;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CollectionTest extends TestCase
 {
@@ -307,5 +308,54 @@ class CollectionTest extends TestCase
         $this->assertFalse($collection->isEmpty());
         $this->assertTrue($collection->contains(9));
         $this->assertFalse($collection->contains(11));
+        $this->assertTrue($collection->contains(function($value, $key){
+            return $value == 8;
+        }));
+    }
+
+    public function testOrdering(){
+        $collection=collect([1,2,3,4,5,6,7,8,9]);
+        $result=$collection->sort();
+        $this->assertEqualsCanonicalizing([1,2,3,4,5,6,7,8,9], $result->all());
+        
+        $result=$collection->sortDesc();
+        $this->assertEqualsCanonicalizing([9,8,7,6,5,4,3,2,1], $result->all());
+    }
+
+    public function testAggregate(){
+        $collection=collect([1,2,3,4,5,6,7,8,9]);
+        $result=$collection->sum();
+        $this->assertEquals(45, $result);
+
+        $result=$collection->avg();
+        $this->assertEquals(5, $result);
+
+        $result=$collection->min();
+        $this->assertEquals(1, $result);
+
+        $result=$collection->max();
+        $this->assertEquals(9, $result);
+    }
+
+    public function testReduce(){
+        $collection=collect([1,2,3,4,5,6,7,8,9]);
+        $result=$collection->reduce(function($carry, $item){
+            return $carry + $item;
+        });
+        $this->assertEquals(45, $result);
+    }
+
+    public function testLazyCollection(){
+        $collection=LazyCollection::make(function(){
+            $value=0;
+
+            while(true){
+                yield $value;
+                $value++;
+            }
+        });
+
+        $result=$collection->take(10);
+        $this->assertEqualsCanonicalizing([0,1,2,3,4,5,6,7,8,9], $result->all());
     }
 }
